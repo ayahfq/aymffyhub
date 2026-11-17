@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tasks &amp; Countdowns</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fffbea;--card:#fffef8;--ink:#14284b;--outline:#14284b;--muted:#4f6288;--line:#14284b;--accent:#e63a2e;--accent-ink:#fff;--hot:#d62828;--done:#8b97b3;
+ --c1:#ffd84d;--c2:#8cc8f5;--c3:#8fdc9c;--c4:#ffa95e;--shadow:#14284b;
+ --head:"Fredoka","Trebuchet MS",system-ui,sans-serif;--body:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif;
+ box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1f45;--card:#16305f;--ink:#f6f1dc;--outline:#f6f1dc;--muted:#b9c7e6;--line:#f6f1dc;--accent:#ff5a4d;--shadow:#050d22;--hot:#ff8a7a;--done:#7f92bd}}
+:root[data-theme="dark"]{--bg:#0d1f45;--card:#16305f;--ink:#f6f1dc;--outline:#f6f1dc;--muted:#b9c7e6;--line:#f6f1dc;--accent:#ff5a4d;--shadow:#050d22;--hot:#ff8a7a;--done:#7f92bd}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+*{box-sizing:border-box}
+body{margin:0;min-height:100%;font-family:var(--body);color:var(--ink);line-height:1.5;background:var(--bg)}
+main{max-width:1000px;margin:0 auto;padding:30px 18px 70px}
+header{display:flex;align-items:flex-end;gap:16px;margin-bottom:6px}
+header svg{flex:none;width:96px;height:72px}
+h1{font-family:var(--head);font-size:clamp(2rem,6vw,3.1rem);font-weight:600;margin:0;line-height:1.05}
+.sub{color:var(--muted);margin:6px 0 26px;font-weight:700}
+.grid{display:grid;grid-template-columns:1fr;gap:26px}
+@media(min-width:820px){.grid{grid-template-columns:1fr 1fr;align-items:start}}
+section{background:var(--card);border:4px solid var(--outline);border-radius:28px;padding:20px 18px 16px;box-shadow:7px 7px 0 var(--shadow)}
+h2{font-family:var(--head);font-size:1.45rem;font-weight:600;margin:0 0 12px}
+form{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+input,button{font:inherit;color:inherit}
+input[type=text],input[type=date],input[type=time]{flex:1 1 130px;min-width:0;padding:9px 12px;border:3px solid var(--outline);border-radius:14px;background:var(--bg)}
+input[type=text]{flex-basis:100%}
+input:focus-visible,button:focus-visible{outline:4px solid var(--accent);outline-offset:2px}
+.btn{padding:9px 20px;border:3px solid var(--outline);border-radius:999px;background:var(--accent);color:var(--accent-ink);font-weight:800;cursor:pointer;box-shadow:3px 3px 0 var(--outline)}
+.btn:active{transform:translate(3px,3px);box-shadow:none}
+.ghost{background:none;border:3px solid var(--outline);color:var(--ink);border-radius:999px;padding:2px 12px;cursor:pointer;font-weight:700}
+.ghost[aria-pressed=true]{background:var(--c1);color:#14284b}
+.filters{display:flex;gap:6px;margin-bottom:12px;align-items:center;flex-wrap:wrap}
+.filters .count{margin-left:auto;color:var(--muted);font-size:.9rem;font-weight:700}
+ul{list-style:none;margin:0;padding:0}
+.task{display:flex;align-items:center;gap:12px;padding:10px 14px;border:3px solid var(--outline);border-radius:18px;margin-bottom:8px;background:var(--bg)}
+.task input{width:24px;height:24px;accent-color:var(--accent);flex:none}
+.task .t{flex:1;min-width:0;overflow-wrap:anywhere;font-weight:700}
+.task.done .t{text-decoration:line-through;color:var(--done);font-weight:400}
+.due{font-size:.82rem;color:var(--muted);white-space:nowrap;font-weight:600}
+.due.late{color:var(--hot);font-weight:800}
+.x{background:none;border:0;color:var(--muted);font-size:1.4rem;cursor:pointer;padding:0 8px;border-radius:8px;line-height:1}
+.x:hover{color:var(--hot)}
+.cd{position:relative;border:4px solid #14284b;border-radius:24px;padding:14px 16px 10px;margin-bottom:14px;background:var(--c1);color:#14284b}
+.cd:nth-child(4n+2){background:var(--c2)}.cd:nth-child(4n+3){background:var(--c3)}.cd:nth-child(4n+4){background:var(--c4)}
+.cd .x{color:#14284b}
+.cd-head{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.cd-name{font-family:var(--head);font-weight:600;font-size:1.2rem;overflow-wrap:anywhere}
+.cd-date{font-size:.85rem;font-weight:700;opacity:.8}
+.clock{display:flex;gap:16px;margin:8px 0 4px;font-variant-numeric:tabular-nums}
+.clock div{display:flex;flex-direction:column}
+.clock b{font-family:var(--head);font-size:clamp(2rem,8vw,2.9rem);font-weight:600;line-height:1}
+.clock span{font-size:.78rem;font-weight:700;opacity:.75}
+.cd.soon::after{content:"Soon!";position:absolute;right:14px;bottom:12px;background:#e63a2e;color:#fff;font-weight:800;border:3px solid #14284b;border-radius:999px;padding:0 12px}
+.cd.past{opacity:.6}
+.empty{color:var(--muted);padding:14px;border:3px dashed var(--outline);border-radius:18px;font-weight:700}
+.wide{grid-column:1/-1}
+select{flex:1 1 110px;padding:9px 12px;border:3px solid var(--outline);border-radius:14px;background:var(--bg);font-weight:700}
+input[type=number]{flex:1 1 110px;min-width:0;padding:9px 12px;border:3px solid var(--outline);border-radius:14px;background:var(--bg)}
+.totals{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px}
+.tot{flex:1 1 140px;border:3px solid #14284b;border-radius:18px;padding:8px 14px;color:#14284b}
+.tot span{display:block;font-size:.8rem;font-weight:800}
+.tot b{font-family:var(--head);font-size:1.6rem;font-weight:600;line-height:1.1}
+.tot.n{background:var(--c2)}.tot.w{background:var(--c1)}.tot.a{background:var(--c3)}
+.fin-grid{display:grid;grid-template-columns:1fr;gap:18px}
+@media(min-width:700px){.fin-grid{grid-template-columns:1fr 1fr;align-items:start}}
+h3{font-family:var(--head);font-size:1.15rem;font-weight:600;margin:0 0 8px;display:flex;justify-content:space-between;gap:8px}
+.price{font-family:var(--head);font-weight:600;white-space:nowrap}
+.bar{height:26px;border:3px solid var(--outline);border-radius:999px;background:var(--bg);overflow:hidden;margin:4px 0 6px}
+.bar i{display:block;height:100%;background:var(--c3);border-right:3px solid var(--outline);width:0;transition:width .4s}
+.note{margin:0 0 14px;font-weight:700;color:var(--muted)}
+.tot.m{background:var(--c3)}.tot.p{background:var(--c2)}.tot.l{background:var(--c1)}.tot.z{background:var(--c4)}
+#status{position:fixed;right:14px;bottom:calc(10px + env(safe-area-inset-bottom,0px));font-size:.8rem;font-weight:800;color:var(--ink);background:var(--card);border:3px solid var(--outline);padding:2px 12px;border-radius:999px}
+</style>
+</head>
+<body>
+<main>
+ <header>
+  <svg viewBox="0 0 96 72" aria-hidden="true" stroke="#14284b" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><circle cx="76" cy="18" r="11" fill="#ffd84d"/><rect x="8" y="34" width="38" height="32" fill="#8cc8f5"/><path d="M4 36L27 12l23 24z" fill="#e63a2e"/><rect x="21" y="48" width="12" height="18" fill="#ffa95e"/><path d="M68 66V46" fill="none"/><path d="M60 38c0 8 4 12 8 12s8-4 8-12c-3 2-5 0-8-4-3 4-5 6-8 4z" fill="#e63a2e"/><path d="M60 62c4-2 6-6 8-10 2 4 4 8 8 10" fill="none" stroke="#3a9d52"/></svg>
+  <h1>Tasks &amp; countdowns</h1>
+ </header>
+ <p class="sub">One small thing at a time.</p>
+ <div class="grid">
+  <section aria-labelledby="th">
+   <h2 id="th">To-do list</h2>
+   <form id="taskForm">
+    <input type="text" id="taskText" placeholder="What needs doing?" aria-label="Task" required maxlength="200">
+    <input type="date" id="taskDue" aria-label="Due date (optional)">
+    <button class="btn" type="submit">Add task</button>
+   </form>
+   <div class="filters" id="filters">
+    <button class="ghost" data-f="all" aria-pressed="true">All</button>
+    <button class="ghost" data-f="active" aria-pressed="false">Active</button>
+    <button class="ghost" data-f="done" aria-pressed="false">Done</button>
+    <button class="ghost" id="clearDone">Clear done</button>
+    <span class="count" id="count"></span>
+   </div>
+   <ul id="tasks"></ul>
+  </section>
+  <section aria-labelledby="ch">
+   <h2 id="ch">Countdowns</h2>
+   <form id="cdForm">
+    <input type="text" id="cdName" placeholder="What are you counting down to?" aria-label="Countdown name" required maxlength="80">
+    <input type="date" id="cdDate" aria-label="Date" required>
+    <input type="time" id="cdTime" aria-label="Time" value="09:00" required>
+    <button class="btn" type="submit">Add countdown</button>
+   </form>
+   <ul id="cds"></ul>
+  </section>
+  <section class="wide" aria-labelledby="fh">
+   <h2 id="fh">Finances</h2>
+   <form id="finForm">
+    <input type="text" id="finName" placeholder="What is the item?" aria-label="Item name" required maxlength="80">
+    <input type="number" id="finPrice" placeholder="Price" aria-label="Price" min="0" step="0.01" inputmode="decimal" required>
+    <select id="finType" aria-label="Need or want"><option value="need">Need</option><option value="want">Want</option></select>
+    <button class="btn" type="submit">Add item</button>
+   </form>
+   <div class="totals" id="totals"></div>
+   <div class="fin-grid">
+    <div><h3 id="needsH">Needs</h3><ul id="needs"></ul></div>
+    <div><h3 id="wantsH">Wants</h3><ul id="wants"></ul></div>
+   </div>
+  </section>
+  <section class="wide" aria-labelledby="bh">
+   <h2 id="bh">Budget</h2>
+   <form id="moneyForm">
+    <input type="text" id="moneyLabel" placeholder="Where is the money from?" aria-label="Money source" required maxlength="80">
+    <input type="number" id="moneyAmt" placeholder="Amount" aria-label="Amount" min="0" step="0.01" inputmode="decimal" required>
+    <button class="btn" type="submit">Add money</button>
+   </form>
+   <div class="totals" id="budgetTotals"></div>
+   <div class="bar" role="img" aria-label="Share of your items paid off" id="bar"><i id="barFill"></i></div>
+   <p class="note" id="barNote"></p>
+   <h3 id="moneyH">Money I have</h3>
+   <ul id="moneyList"></ul>
+  </section>
+ </div>
+</main>
+<div id="status" role="status"></div>
+<script>
+(function(){
+ var KEY="tracker-v2", state={tasks:[],cds:[],fin:[],money:[]}, filter="all", docRef=null, statusEl=document.getElementById("status");
+ function valid(s){return s&&Array.isArray(s.tasks)&&Array.isArray(s.cds);}
+ try{var s=JSON.parse(localStorage.getItem(KEY)||"null"); if(valid(s)){state=s;state.fin=state.fin||[];state.money=state.money||[];}}catch(e){}
+ function say(t){statusEl.textContent=t;}
+ var timer=null;
+ function save(){
+  try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}
+  if(!docRef){say("Saved on this device");return;}
+  clearTimeout(timer);
+  timer=setTimeout(function(){
+   docRef.set({tasks:state.tasks,cds:state.cds,fin:state.fin,money:state.money}).then(function(){say("Saved to your account");}).catch(function(){say("Saved on this device");});
+  },400);
+ }
+ function id(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+ function el(tag,cls,text){var n=document.createElement(tag); if(cls)n.className=cls; if(text!==undefined)n.textContent=text; return n;}
+ var today=function(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");};
+
+ function renderTasks(){
+  var ul=document.getElementById("tasks"); ul.innerHTML="";
+  var list=state.tasks.filter(function(t){return filter==="all"||(filter==="done"?t.done:!t.done);});
+  list.forEach(function(t){
+   var li=el("li","task"+(t.done?" done":""));
+   var cb=el("input"); cb.type="checkbox"; cb.checked=t.done; cb.setAttribute("aria-label","Mark done: "+t.text);
+   cb.onchange=function(){t.done=cb.checked;save();renderTasks();};
+   li.appendChild(cb); li.appendChild(el("span","t",t.text));
+   if(t.due){var late=!t.done&&t.due<today(); li.appendChild(el("span","due"+(late?" late":""),(late?"Overdue · ":"Due ")+t.due));}
+   var x=el("button","x","×"); x.setAttribute("aria-label","Delete task: "+t.text);
+   x.onclick=function(){state.tasks=state.tasks.filter(function(a){return a!==t;});save();renderTasks();};
+   li.appendChild(x); ul.appendChild(li);
+  });
+  if(!list.length) ul.appendChild(el("li","empty",state.tasks.length?"Nothing in this view.":"Nothing here yet. Add your first task above."));
+  document.getElementById("count").textContent=state.tasks.filter(function(t){return !t.done;}).length+" left";
+ }
+
+
+ function money(n){return (n<0?"-":"")+"$"+Math.abs(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});}
+ function renderFin(){
+  var sums={need:0,want:0};
+  ["need","want"].forEach(function(type){
+   var ul=document.getElementById(type+"s"); ul.innerHTML="";
+   var items=state.fin.filter(function(f){return f.type===type;});
+   items.forEach(function(f){
+    if(!f.done) sums[type]+=f.price;
+    var li=el("li","task"+(f.done?" done":""));
+    var cb=el("input"); cb.type="checkbox"; cb.checked=!!f.done; cb.setAttribute("aria-label","Mark as bought: "+f.name);
+    cb.onchange=function(){f.done=cb.checked;save();renderFin();};
+    li.appendChild(cb); li.appendChild(el("span","t",f.name)); li.appendChild(el("span","price",money(f.price)));
+    var x=el("button","x","×"); x.setAttribute("aria-label","Delete item: "+f.name);
+    x.onclick=function(){state.fin=state.fin.filter(function(a){return a!==f;});save();renderFin();};
+    li.appendChild(x); ul.appendChild(li);
+   });
+   if(!items.length) ul.appendChild(el("li","empty",type==="need"?"No needs added yet.":"No wants added yet."));
+   document.getElementById(type+"sH").textContent=(type==="need"?"Needs":"Wants")+" ("+items.length+(items.length===1?" item)":" items)");
+  });
+  var t=document.getElementById("totals"); t.innerHTML="";
+  [["n","Needs",sums.need],["w","Wants",sums.want],["a","Total left to buy",sums.need+sums.want]].forEach(function(r){
+   var d=el("div","tot "+r[0]); d.appendChild(el("span","",r[1])); d.appendChild(el("b","",money(r[2]))); t.appendChild(d);
+  });
+  renderBudget();
+ }
+ function renderBudget(){
+  var have=0,paid=0,left=0;
+  state.money.forEach(function(m){have+=m.amount;});
+  state.fin.forEach(function(f){if(f.done)paid+=f.price;else left+=f.price;});
+  var cash=have-paid, after=cash-left;
+  var t=document.getElementById("budgetTotals"); t.innerHTML="";
+  [["m","Money I have",have],["p","Paid off",paid],["l","Money left now",cash],["z","Left after buying everything",after]].forEach(function(r){
+   var d=el("div","tot "+r[0]); d.appendChild(el("span","",r[1])); d.appendChild(el("b","",money(r[2]))); t.appendChild(d);
+  });
+  var all=paid+left, pct=all?Math.round(paid/all*100):0;
+  document.getElementById("barFill").style.width=pct+"%";
+  document.getElementById("bar").setAttribute("aria-valuenow",pct);
+  document.getElementById("barNote").textContent=(all?pct+"% of your items are paid off. ":"No items to pay off yet. ")+
+   (left>0?(after<0?"You’re "+money(-after)+" short for everything left to buy.":"You have enough for everything left to buy."):"");
+  var ul=document.getElementById("moneyList"); ul.innerHTML="";
+  state.money.forEach(function(m){
+   var li=el("li","task"); li.appendChild(el("span","t",m.label)); li.appendChild(el("span","price",money(m.amount)));
+   var x=el("button","x","×"); x.setAttribute("aria-label","Delete money: "+m.label);
+   x.onclick=function(){state.money=state.money.filter(function(a){return a!==m;});save();renderBudget();};
+   li.appendChild(x); ul.appendChild(li);
+  });
+  if(!state.money.length) ul.appendChild(el("li","empty","No money added yet."));
+ }
+ document.getElementById("moneyForm").onsubmit=function(e){
+  e.preventDefault(); var l=document.getElementById("moneyLabel"), a=document.getElementById("moneyAmt"), amt=parseFloat(a.value);
+  if(!l.value.trim()||isNaN(amt)||amt<0) return;
+  state.money.push({id:id(),label:l.value.trim(),amount:Math.round(amt*100)/100}); l.value=""; a.value=""; save(); renderBudget();
+ };
+ document.getElementById("finForm").onsubmit=function(e){
+  e.preventDefault(); var n=document.getElementById("finName"), p=document.getElementById("finPrice"), ty=document.getElementById("finType");
+  var price=parseFloat(p.value); if(!n.value.trim()||isNaN(price)||price<0) return;
+  state.fin.push({id:id(),name:n.value.trim(),price:Math.round(price*100)/100,type:ty.value,done:false}); n.value=""; p.value=""; save(); renderFin();
+ };
+ var pad=function(n){return String(n).padStart(2,"0");};
+ function renderCds(){
+  var ul=document.getElementById("cds"); ul.innerHTML="";
+  state.cds.sort(function(a,b){return a.at-b.at;});
+  state.cds.forEach(function(c){
+   var li=el("li","cd"); li.dataset.id=c.id;
+   var head=el("div","cd-head"); head.appendChild(el("span","cd-name",c.name));
+   var x=el("button","x","×"); x.setAttribute("aria-label","Delete countdown: "+c.name);
+   x.onclick=function(){state.cds=state.cds.filter(function(a){return a!==c;});save();renderCds();};
+   head.appendChild(x); li.appendChild(head);
+   li.appendChild(el("div","cd-date",new Date(c.at).toLocaleString([], {weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})));
+   var clock=el("div","clock");
+   ["d:days","h:hours","m:minutes","s:seconds"].forEach(function(p){
+    var k=p.split(":"), d=el("div"), b=el("b","","00"); b.dataset.u=k[0];
+    d.appendChild(b); d.appendChild(el("span","",k[1])); clock.appendChild(d);
+   });
+   li.appendChild(clock); var n=el("div","cd-date"); n.dataset.note="1"; li.appendChild(n);
+   ul.appendChild(li);
+  });
+  if(!state.cds.length) ul.appendChild(el("li","empty","Nothing to look forward to yet. Pick a date and time."));
+  tick();
+ }
+ function tick(){
+  var now=Date.now();
+  state.cds.forEach(function(c){
+   var li=document.querySelector('.cd[data-id="'+c.id+'"]'); if(!li) return;
+   var diff=c.at-now, past=diff<=0, s=Math.floor(Math.abs(diff)/1000);
+   var v={d:Math.floor(s/86400),h:Math.floor(s%86400/3600),m:Math.floor(s%3600/60),s:s%60};
+   for(var u in v){li.querySelector('b[data-u="'+u+'"]').textContent=u==="d"?String(v[u]):pad(v[u]);}
+   li.classList.toggle("past",past); li.classList.toggle("soon",!past&&diff<86400000);
+   li.querySelector("[data-note]").textContent=past?"This was "+(v.d?v.d+" day"+(v.d>1?"s":""):v.h?v.h+" hr":"moments")+" ago":"";
+  });
+ }
+
+ document.getElementById("taskForm").onsubmit=function(e){
+  e.preventDefault(); var t=document.getElementById("taskText"), d=document.getElementById("taskDue"), text=t.value.trim(); if(!text) return;
+  state.tasks.unshift({id:id(),text:text,done:false,due:d.value||""}); t.value=""; d.value=""; save(); renderTasks();
+ };
+ document.getElementById("cdForm").onsubmit=function(e){
+  e.preventDefault(); var n=document.getElementById("cdName"), d=document.getElementById("cdDate"), tm=document.getElementById("cdTime");
+  var at=new Date(d.value+"T"+(tm.value||"00:00")).getTime(); if(!n.value.trim()||isNaN(at)) return;
+  state.cds.push({id:id(),name:n.value.trim(),at:at}); n.value=""; d.value=""; save(); renderCds();
+ };
+ document.getElementById("filters").addEventListener("click",function(e){
+  var f=e.target.dataset.f; if(!f) return; filter=f;
+  [].forEach.call(document.querySelectorAll("[data-f]"),function(b){b.setAttribute("aria-pressed",b.dataset.f===f);});
+  renderTasks();
+ });
+ document.getElementById("clearDone").onclick=function(){state.tasks=state.tasks.filter(function(t){return !t.done;});save();renderTasks();};
+
+ renderTasks(); renderCds(); renderFin(); setInterval(tick,1000); say("Saved on this device");
+
+ // Sync with the viewer's private account storage when available
+ (async function(){
+  try{
+   if(!window.claude) return;
+   var db=await claude.use("db"), user=await claude.use("user");
+   if(!db||!user) return;
+   var uid=await user.id();
+   docRef=db.doc("data/users/"+uid+"/state");
+   var snap=await docRef.get();
+   if(snap.exists&&valid(snap.data())){state={tasks:snap.data().tasks,cds:snap.data().cds,fin:snap.data().fin||[],money:snap.data().money||[]};try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){} renderTasks();renderCds();renderFin();say("Saved to your account");}
+   else if(state.tasks.length||state.cds.length||state.fin.length||state.money.length){save();}
+   else say("Saved to your account");
+  }catch(e){docRef=null;}
+ })();
+})();
+</script>
+</body>
+</html>
